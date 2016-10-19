@@ -108,6 +108,16 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then wget https://github.com/stnava/ITKR/releases/download/latest/ITKR_${itkrrel}_R_x86_64-pc-linux-gnu.tar.gz; R CMD INSTALL ITKR_${itkrrel}_R_x86_64-pc-linux-gnu.tar.gz; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then wget http://github.com/stnava/ITKR/releases/download/latest/ITKR_${itkrrel}.tgz; R CMD INSTALL ITKR_${itkrrel}.tgz; fi
   - export PATH=${HOME}/bin/:$PATH  
+  # h5 config
+  - sudo apt-get install subversion autoconf build-essential libtool
+  - cd ..
+  - svn checkout http://svn.hdfgroup.uiuc.edu/hdf5/trunk hdf5-src
+  - cd hdf5-src
+  - ./autogen.sh
+  - autoconf
+  - ./configure --prefix=/usr/local --enable-cxx --enable-build-mode=production
+  - sudo make install
+  - cd ../h5  
   # - cd ${basedir}
 
 # Build and check package
@@ -148,14 +158,14 @@ notifications:
     on_success: change
     on_failure: always
 
-env:
-  global:
+# env:
+  # global:
 #   - R_BUILD_ARGS=" "
 #   - R_CHECK_ARGS=" --timings"
 #   - R_CHECK_TIME="TRUE"
 #   - R_CHECK_TESTS="TRUE"
 #   - _R_CHECK_TIMINGS_="0"
-  - _R_CHECK_FORCE_SUGGESTS_="0"
+#   - _R_CHECK_FORCE_SUGGESTS_="0"
 #   - BOOTSTRAP_LATEX=1
 #   - WARNINGS_ARE_ERRORS=0
 
