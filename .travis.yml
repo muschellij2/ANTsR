@@ -10,6 +10,8 @@ r_check_args: --no-build-vignettes
 r_build_args: --no-build-vignettes --no-manual
 upgrade_deps: false
 
+r_binary_packages: h5
+
 os:
   - linux
   - osx
