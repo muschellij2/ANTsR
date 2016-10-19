@@ -2,7 +2,7 @@
 
 # use c as catch-all language
 language: r
-sudo: false
+sudo: required
 cache: packages
 use_bioc: yes
 bioc_required: yes
