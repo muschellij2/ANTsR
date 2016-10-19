@@ -6,7 +6,7 @@ sudo: required
 cache: packages
 use_bioc: yes
 bioc_required: yes
-r_check_args: --no-build-vignettes
+r_check_args: --no-build-vignettes --as-cran
 r_build_args: --no-build-vignettes --no-manual
 upgrade_deps: false
 
