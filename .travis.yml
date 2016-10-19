@@ -1,16 +1,16 @@
 # use containers
+
+# use c as catch-all language
+language: r
 sudo: false
+cache: packages
+use_bioc: yes
+bioc_required: yes
 
 os:
   - linux
   - osx
 
-cache: packages
-use_bioc: yes
-bioc_required: yes
-
-# use c as catch-all language
-language: r
 
 compiler:
   - clang
@@ -24,11 +24,13 @@ matrix:
 #  only:
 #   - master
 
-addons:
-  apt:
-    packages:
-    - cmake
-    - pandoc
+apt_packages:
+  - cmake
+  - pandoc  
+
+brew_packages:
+  - cmake
+  - pandoc
 
 # cache local R libraries directory:
 cache:
