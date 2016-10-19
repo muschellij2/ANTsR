@@ -6,6 +6,7 @@ sudo: required
 cache: packages
 use_bioc: yes
 bioc_required: yes
+r_check_args: --no-vignettes
 
 os:
   - linux
