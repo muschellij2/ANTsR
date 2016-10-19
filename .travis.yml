@@ -39,11 +39,6 @@ before_script:
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3
 
-bioc_required: yes
-use_bioc: yes
-r:
-- release
-- devel
 
 # cache local R libraries directory:
 # cache:
