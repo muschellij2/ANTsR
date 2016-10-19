@@ -32,8 +32,8 @@ apt_packages:
   - pandoc
   - tcl8.5-dev
   - tk8.5-dev
-  - libhdf5-7
-  - libhdf5-dev
+  # - libhdf5-7
+  # - libhdf5-dev
 
 brew_packages:
   - pandoc
