@@ -10,7 +10,6 @@ r_check_args: --no-build-vignettes
 r_build_args: --no-build-vignettes --no-manual
 upgrade_deps: false
 
-r_binary_packages: h5
 
 os:
   - linux
@@ -149,14 +148,14 @@ notifications:
     on_success: change
     on_failure: always
 
-# env:
-#   global:
+env:
+  global:
 #   - R_BUILD_ARGS=" "
 #   - R_CHECK_ARGS=" --timings"
 #   - R_CHECK_TIME="TRUE"
 #   - R_CHECK_TESTS="TRUE"
 #   - _R_CHECK_TIMINGS_="0"
-#   - _R_CHECK_FORCE_SUGGESTS_="0"
+  - _R_CHECK_FORCE_SUGGESTS_="0"
 #   - BOOTSTRAP_LATEX=1
 #   - WARNINGS_ARE_ERRORS=0
 
