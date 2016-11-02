@@ -13,11 +13,10 @@ upgrade_deps: false
 
 r_binary_packages: 
   - gWidgetstcltk
-  - extremevalues
 
 os:
   - linux
-  - osx
+  # - osx
 
 
 compiler:
