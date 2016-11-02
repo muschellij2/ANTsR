@@ -81,7 +81,7 @@ before_install:
   - echo "CXX=clang++" >> ~/.R/Makevars
   - echo "CXX1X=clang++" >> ~/.R/Makevars
   - echo "CXX1XSTD=-std=c++11" >> ~/.R/Makevars
-  - echo "options(rgl.useNULL = TRUE)" >> ~/.Rprofile
+  - export RGL_USE_NULL=TRUE;
   - source ~/.R/Makevars
   # - Rscript -e 'de = "DESCRIPTION"; dcf = as.data.frame(read.dcf(de), stringsAsFactors = FALSE); cn = which(colnames(dcf) != "Remotes"); dcf = dcf[,cn, drop =FALSE]; write.dcf(x= dcf, file = de)'
   # removing Remotes
@@ -116,7 +116,7 @@ before_install:
   - export PATH=${HOME}/bin/:$PATH  
   # - wget https://support.hdfgroup.org/ftp/HDF5/current/src/CMake-hdf5-1.8.17.tar.gz; tar -xvf CMake-hdf5-1.8.17.tar.gz; cd CMake-hdf5-1.8.17 && ctest -S HDF5config.cmake,BUILD_GENERATOR=Unix -C Release -V -O hdf5.log 
   - wget https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.17.tar.gz;  gunzip < hdf5-1.8.17.tar.gz | tar xf -;  cd hdf5-1.8.17 && ./configure --enable-cxx --prefix=${HOME}/hdf5 && make && make install; 
-  - export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/lib
+  - export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/hdf5/lib;
   - export PATH=${HOME}/hdf5/bin/:$PATH;
   - itkrrel=0.0.1
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then wget https://github.com/stnava/ITKR/releases/download/latest/ITKR_${itkrrel}_R_x86_64-pc-linux-gnu.tar.gz; R CMD INSTALL ITKR_${itkrrel}_R_x86_64-pc-linux-gnu.tar.gz; fi
