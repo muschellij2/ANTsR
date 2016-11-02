@@ -31,19 +31,19 @@ matrix:
 #  only:
 #   - master
 
-apt_packages:
-  - pandoc
-  - tcl8.5-dev
-  - tk8.5-dev
-  - git-core
-  # h5 packages
-  - libhdf5-7 
-  - libhdf5-dev 
-  - libhdf5-serial-dev
+# apt_packages:
+#   - pandoc
+#   - tcl8.5-dev
+#   - tk8.5-dev
+#   - git-core
+#   # h5 packages
+#   - libhdf5-10
+#   - libhdf5-dev 
+#   - libhdf5-serial-dev
 
-brew_packages:
-  - pandoc
-  - homebrew/science/hdf5  --enable-cxx
+# brew_packages:
+#   - pandoc
+#   - homebrew/science/hdf5  --enable-cxx
 
   # - sleep 3
 
@@ -81,6 +81,7 @@ before_install:
   - echo "CXX=clang++" >> ~/.R/Makevars
   - echo "CXX1X=clang++" >> ~/.R/Makevars
   - echo "CXX1XSTD=-std=c++11" >> ~/.R/Makevars
+  - echo "options(rgl.useNULL = TRUE)" >> ~/.Rprofile
   - source ~/.R/Makevars
   # - Rscript -e 'de = "DESCRIPTION"; dcf = as.data.frame(read.dcf(de), stringsAsFactors = FALSE); cn = which(colnames(dcf) != "Remotes"); dcf = dcf[,cn, drop =FALSE]; write.dcf(x= dcf, file = de)'
   # removing Remotes
@@ -109,11 +110,14 @@ before_install:
   # - Rscript -e 'update.packages(ask = FALSE, instlib = "~/Rlib")'
 #  - Rscript -e 'devtools::install_deps(pkg = ".", dependencies = TRUE)'
   # - cd ~/
+  - cwd=`pwd`
+  - cd ~/     
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then wget --no-check-certificate https://cmake.org/files/v3.4/cmake-3.4.0-rc1-Linux-x86_64.sh; sh cmake-3.4.0-rc1-Linux-x86_64.sh --skip-license --prefix=${HOME}; export PATH=${HOME}/bin/:$PATH; fi
   - export PATH=${HOME}/bin/:$PATH  
+  # - wget https://support.hdfgroup.org/ftp/HDF5/current/src/CMake-hdf5-1.8.17.tar.gz; tar -xvf CMake-hdf5-1.8.17.tar.gz; cd CMake-hdf5-1.8.17 && ctest -S HDF5config.cmake,BUILD_GENERATOR=Unix -C Release -V -O hdf5.log 
+  - wget https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.17.tar.gz;  gunzip < hdf5-1.8.17.tar.gz | tar xf -;  cd hdf5-1.8.17 && ./configure --enable-cxx --prefix=${HOME}/hdf5 && make && make install; 
+  - export PATH=${HOME}/hdf5/bin/:$PATH  
   - itkrrel=0.0.1
-  - cwd=`pwd`
-  - cd ~/   
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then wget https://github.com/stnava/ITKR/releases/download/latest/ITKR_${itkrrel}_R_x86_64-pc-linux-gnu.tar.gz; R CMD INSTALL ITKR_${itkrrel}_R_x86_64-pc-linux-gnu.tar.gz; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then wget http://github.com/stnava/ITKR/releases/download/latest/ITKR_${itkrrel}.tgz; R CMD INSTALL ITKR_${itkrrel}.tgz; fi
   - cd $cwd
