@@ -79,7 +79,7 @@ before_install:
   - echo "CXX1X=clang++" >> ~/.R/Makevars
   - echo "CXX1XSTD=-std=c++11" >> ~/.R/Makevars
   - source ~/.R/Makevars
-  - Rscript -e 'de = "DESCRIPTION"; dcf = as.data.frame(read.dcf(de), stringsAsFactors = FALSE); cn = which(colnames(dcf) != "Remotes"); dcf = dcf[,cn, drop =FALSE]; write.dcf(x= dcf, file = de)'
+  # - Rscript -e 'de = "DESCRIPTION"; dcf = as.data.frame(read.dcf(de), stringsAsFactors = FALSE); cn = which(colnames(dcf) != "Remotes"); dcf = dcf[,cn, drop =FALSE]; write.dcf(x= dcf, file = de)'
   # removing Remotes
   # - mkdir -p ~/Rlib
   # - echo 'R_LIBS=~/Rlib' > .Renviron
@@ -111,6 +111,8 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then wget https://github.com/stnava/ITKR/releases/download/latest/ITKR_${itkrrel}_R_x86_64-pc-linux-gnu.tar.gz; R CMD INSTALL ITKR_${itkrrel}_R_x86_64-pc-linux-gnu.tar.gz; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then wget http://github.com/stnava/ITKR/releases/download/latest/ITKR_${itkrrel}.tgz; R CMD INSTALL ITKR_${itkrrel}.tgz; fi
   - export PATH=${HOME}/bin/:$PATH  
+  - Rscript -e 'devtools::source_gist("https://gist.github.com/muschellij2/69c48f469ab34cc05752361645ffa8e0"); rewrite_dcf(drop_remotes = c("ITKR"));'
+
   # h5 config
   # - sudo apt-get install subversion autoconf build-essential libtool
   # - cd ..
