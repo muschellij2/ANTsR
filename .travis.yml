@@ -14,7 +14,6 @@ upgrade_deps: false
 r_binary_packages: 
   - gWidgetstcltk
   - extremevalues
-  - h5
 
 os:
   - linux
