@@ -11,6 +11,9 @@ r_build_args: --no-build-vignettes --no-manual
 upgrade_deps: false
 
 
+r_binary_packages: 
+  - gWidgetstcltk
+
 os:
   - linux
   - osx
