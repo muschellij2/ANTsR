@@ -2,7 +2,7 @@
 
 # use c as catch-all language
 language: r
-sudo: false
+sudo: required
 cache: packages
 use_bioc: yes
 bioc_required: yes
@@ -32,19 +32,19 @@ matrix:
 #  only:
 #   - master
 
-# apt_packages:
-#   - pandoc
-#   - tcl8.5-dev
-#   - tk8.5-dev
-#   - git-core
-#   # h5 packages
-#   - libhdf5-7 
-#   - libhdf5-dev 
-#   - libhdf5-serial-dev
+apt_packages:
+  - pandoc
+  - tcl8.5-dev
+  - tk8.5-dev
+  - git-core
+  # h5 packages
+  - libhdf5-7 
+  - libhdf5-dev 
+  - libhdf5-serial-dev
 
-# brew_packages:
-#   - pandoc
-#   - homebrew/science/hdf5  --enable-cxx
+brew_packages:
+  - pandoc
+  - homebrew/science/hdf5  --enable-cxx
 
   # - sleep 3
 
