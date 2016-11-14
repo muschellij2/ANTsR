@@ -10,6 +10,9 @@ r_check_args: --no-build-vignettes --as-cran
 r_build_args: --no-build-vignettes --no-manual
 upgrade_deps: false
 
+r:
+  - release
+  - devel
 
 r_binary_packages: 
   - gWidgetstcltk
