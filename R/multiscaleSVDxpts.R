@@ -12,7 +12,7 @@
 #' @param sigma parameter for kernel PCA.
 #' @param kmetric similarity or distance metric determining k nearest neighbors
 #' @param eps epsilon error for rapid knn
-#' @param mypkg set either nabor or RANN
+#' @param mypkg set either nabor, RANN, rflann
 #' @return matrix sparse p by p matrix is output with p by k nonzero entries
 #' @author Avants BB
 #' @references
@@ -57,7 +57,13 @@ sparseDistanceMatrix <- function( x, k = 3, r = Inf, sigma = NA,
     x = scale( x, center = TRUE, scale = (kmetric == "correlation" ) )
     }
   if ( mypkg[1] == "nabor" ) bknn = nabor::knn( t( x ) , k=k, eps=eps )
-  if ( mypkg[1] == "RANN" )  bknn = RANN::nn2( t( x ) , k=k, eps=eps )
+  if ( mypkg[1] == "RANN" )  bknn = RANN::nn2( t( x ) , k=k, eps=eps  )
+  if ( mypkg[1] == "rflann" )  {
+    myncores = as.numeric( system('getconf _NPROCESSORS_ONLN', intern = TRUE) )
+    bknn = rflann::Neighbour( t(x), t(x), k=k, "kdtree", cores=myncores, 1 )
+    names( bknn ) = c( "nn.idx", "nn.dists" )
+    }
+#  if ( mypkg[1] == "naborpar" ) bknn = .naborpar( t( x ), t( x ) , k=k, eps=eps  )
   if ( cometric ) bknn$nn.dists = ecor( bknn$nn.dists )
   tct = 0
   for ( i in 1:ncol( x ) )
@@ -117,8 +123,6 @@ sparseDistanceMatrix <- function( x, k = 3, r = Inf, sigma = NA,
 
 
 
-
-
 #' Create sparse distance, covariance or correlation matrix from x, y
 #'
 #' Exploit k-nearest neighbor algorithms to estimate a sparse matrix measuring
@@ -135,7 +139,7 @@ sparseDistanceMatrix <- function( x, k = 3, r = Inf, sigma = NA,
 #' @param sigma parameter for kernel PCA.
 #' @param kmetric similarity or distance metric determining k nearest neighbors
 #' @param eps epsilon error for rapid knn
-#' @param mypkg set either nabor or RANN
+#' @param mypkg set either nabor, RANN, rflann
 #' @return matrix sparse p by q matrix is output with p by k nonzero entries
 #' @author Avants BB
 #' @references
@@ -168,6 +172,12 @@ sparseDistanceMatrixXY <- function( x, y, k = 3, r = Inf, sigma = NA,
     }
   if ( mypkg[1] == "nabor" ) bknn = nabor::knn( t( y ), t( x ) , k=k, eps=eps )
   if ( mypkg[1] == "RANN" )  bknn = RANN::nn2( t( y ), t( x ) , k=k, eps=eps )
+  if ( mypkg[1] == "rflann" )  {
+    myncores = as.numeric( system('getconf _NPROCESSORS_ONLN', intern = TRUE) )
+    bknn = rflann::Neighbour( t(y), t(x), k=k, "kdtree", cores=myncores, 1 )
+    names( bknn ) = c( "nn.idx", "nn.dists" )
+    }
+#  if ( mypkg[1] == "naborpar" ) bknn = .naborpar( t( y ), t( x ) , k=k, eps=eps  )
   if ( cometric ) bknn$nn.dists = ecor( bknn$nn.dists )
   tct = 0
   for ( i in 1:ncol( x ) )
@@ -222,6 +232,29 @@ sparseDistanceMatrixXY <- function( x, y, k = 3, r = Inf, sigma = NA,
 
 
 
+#
+# .naborpar <- function( xin, yin, k, eps ) {
+#  if ( ! usePkg( "doParallel" ) ) stop( "need doParallel for naborpar" )
+#  library( doParallel )
+#  library( parallel )
+#  invisible(capture.output(library( foreach, quietly=TRUE )))
+#  ncor = parallel::detectCores( )
+#  cl <- round( parallel::makeCluster( ncor )/2 )
+#  doParallel::registerDoParallel( cl )
+#  mycomb <- function( x, y ) {
+#    x$nn.idx = rbind( x$nn.idx, y$nn.idx )
+#    x$nn.dists = rbind( x$nn.dists, y$nn.dists )
+#    x
+#    }
+#  mylen = ceiling( nrow( xin ) / ncor  )
+#  selinds = rep( c(1:ncor), each=mylen )[1:nrow(xin)]
+#  myout <- foreach( i=1:ncor, .combine=mycomb, .packages="ANTsR" ) %dopar% {
+#    selector = selinds == i
+#    nabor::knn( xin , yin[selector,], k=k, eps=eps )
+#  }
+#  myout
+# }
+#
 
 #' Multi-scale svd
 #'

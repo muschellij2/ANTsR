@@ -33,9 +33,11 @@
 #'
 #' If the transform list is a matrix followed by a warp field, whichtoinvert
 #' defaults to c(TRUE,FALSE). Otherwise it defaults to rep(FALSE, length(transformlist)).
+#' @param compose if it is a character string pointing to a valid file location,
+#' this will force the function to return a composite transformation filename.
 #' @param verbose print command and run verbose application of transform.
 #' @param ... extra parameters
-#' @return an antsImage is output. 1 -- Failure
+#' @return an antsImage or transformation filename is output. 1 -- Failure
 #' @author Shrinidhi KL, Avants BB
 #' @examples
 #'
@@ -72,14 +74,10 @@ antsApplyTransforms <- function(
     "hammingWindowedSinc",
     "lanczosWindowedSinc",
     "genericLabel" ),
-  imagetype = 0, whichtoinvert = NA, verbose = FALSE, ... ) {
+  imagetype = 0, whichtoinvert = NA,
+  compose = NA, verbose = FALSE, ... ) {
   if (missing(fixed) | missing(moving) | missing(transformlist)) {
-    cat(" warpedimg<-antsApplyTransforms( fixed=img1 , moving=img2 , transformlist=c(\"my0GenericAffine.mat\",\"my1Warp.nii.gz\") ) ")
-    cat("\n\n")
-    cat("For full mode: use standard ants call as in antsApplyTransforms full mode ... \n\n")
-    cat(" antsApplyTransforms(\"-d\",\"2\",\"-i\",\"r64slice.nii.gz\",\"-o\",\"temp.nii.gz\",\"-r\",\"r16slice.nii.gz\",\"-t\",\"./Z0GenericAffine.mat\") \n")
-    cat("for full help: \n")
-    cat("use .Call( \"antsApplyTransforms\", .int_antsProcessArguments( c(list(\"--help\")) ), PACKAGE=\"ANTsR\" );\n\n")
+    print("missig inputs")
     return( NA )
   }
   interpolator[1] = paste( tolower( substring( interpolator[1], 1, 1 ) ),
@@ -147,8 +145,15 @@ antsApplyTransforms <- function(
         }
 
       }
-      args <- list(d = fixed@dimension, i = m, o = wmo, r = f, n = interpolator,
+      if ( is.na( compose ) )
+        args <- list(d = fixed@dimension, i = m, o = wmo, r = f, n = interpolator,
                    unlist(mytx))
+      tfn <- paste( compose, "comptx.nii.gz", sep='' )
+      if ( !is.na( compose ) ) {
+        mycompo = paste("[", tfn, ",1]", sep = "")
+        args <- list(d = fixed@dimension, i = m, o = mycompo, r = f,
+          n = interpolator, unlist(mytx))
+        }
       myargs <- .int_antsProcessArguments(c(args))
       for (jj in c(1:length(myargs))) {
         if (!is.na(myargs[jj])) {
@@ -165,7 +170,8 @@ antsApplyTransforms <- function(
       .Call("antsApplyTransforms",
         c(myargs, "-z", 1, "-v", myverb, "--float", 1, "-e", imagetype),
         PACKAGE = "ANTsR")
-      return(antsImageClone(warpedmovout, inpixeltype))
+      if ( is.na( compose ) ) return(antsImageClone(warpedmovout, inpixeltype))
+      if ( !is.na( compose ) ) if ( file.exists( tfn ) ) return( tfn ) else return( NA )
     }
     # Get here if fixed, moving, transformlist are not missing, fixed is not of type character,
     # and fixed and moving are not both of type antsImage
