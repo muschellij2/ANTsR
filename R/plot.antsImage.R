@@ -68,7 +68,7 @@
 #' @export
 plot.antsImage <- function(x, y,
   color.img = "white",
-  color.overlay = c("jet", "red", "blue",  "green", "yellow"),
+  color.overlay = c("jet", "red", "blue",  "green", "yellow", "viridis", "magma", "plasma", "inferno"),
   axis = 2,
   slices,
   colorbar = missing(y),
@@ -131,6 +131,7 @@ if ( ! any( is.na( domainImageMap ) ) )
   if ( length( dim( x ) ) < axis ) axis = length( dim( x ) )
   if(missing(slices)){
     plotimask<-getMask(x, cleanup=0)
+    if ( max( plotimask ) == 0 ) plotimask = plotimask + 1
     if ( doCropping ) x <- cropImage(x, plotimask )
     slices <- round(seq(1, dim(x)[axis], length.out=nslices))
   }
@@ -150,7 +151,6 @@ if ( ! any( is.na( domainImageMap ) ) )
     y <- NA
   if (is.antsImage(y))
     y <- list(y)
-  functional <- y
   imagedim <- length(dim(myantsimage))
   hvpx <- usePkg("pixmap")
   hvmsc <- usePkg("misc3d")
@@ -216,6 +216,10 @@ if ( ! any( is.na( domainImageMap ) ) )
     image(rotate270.matrix(z), ...)
   }
   makePalette <- function( mpcolor, nlevels=15){
+    if ( mpcolor == "viridis") return( viridis::viridis( nlevels ) )
+    if ( mpcolor == "magma") return( viridis::magma( nlevels ) )
+    if ( mpcolor == "plasma") return( viridis::plasma( nlevels ) )
+    if ( mpcolor == "inferno") return( viridis::inferno( nlevels ) )
     if (mpcolor == "white"){
       colorfun <- colorRampPalette(c("black", "white"), interpolate = c("spline"),
         space = "Lab")
@@ -230,9 +234,7 @@ if ( ! any( is.na( domainImageMap ) ) )
     colorfun(nlevels)
   }
 
-  if (all(is.na(functional))) {
-    # print(paste('functional image file', functional, 'does not exist. no overlay
-    # will be produced.'))
+  if (all(is.na(y))) {
     thresh <- "1.e9x1.e9"
   }
   # .................................................
@@ -328,7 +330,7 @@ if ( ! any( is.na( domainImageMap ) ) )
     window.img[ 1 ]<-min( x )
   bigslice[bigslice<window.img[1]] <- window.img[1]
   bigslice[bigslice>window.img[2]] <- window.img[2]
-  if(colorbar & missing(y)){
+  if ( colorbar & missing( y ) ){
     nlev = 50
     levels <- seq(window.img[1], window.img[2], length.out=nlev)
     # code taken from filled.contour
@@ -354,6 +356,11 @@ if ( ! any( is.na( domainImageMap ) ) )
     mar[4L] <- 1
     par(mar = mar)
   }
+  if ( ! missing( window.overlay ) ) {
+    eps = 1.e-8
+    window.overlay[1] = window.overlay[1] - eps
+    window.overlay[2] = window.overlay[2] + eps
+    }
   if(colorbar & !missing(y)){
     nlev = 50
     levels <- seq(window.overlay[1], window.overlay[2], length.out=nlev )
@@ -404,23 +411,25 @@ if ( ! any( is.na( domainImageMap ) ) )
   }
   if ( ! missing( window.overlay ) )
   if ( ( window.overlay[1] > window.overlay[2] ) |
-         all( is.na( functional ) ) ) {
+         all( is.na( y ) ) ) {
     if (!is.na(outname))
       dev.off()
     invisible(return())
   }
-  if ( ! all( is.na(functional) ) )
+  if ( ! all( is.na( y ) ) )
   {
-  for (ind in 1:length(functional)) {
+  for (ind in 1:length( y )) {
 
     biglab <- matrix(0, nrow = slicerow * winrows, ncol = (slicecol * wincols))
     if ( exists("plotimask") ) { # the label image
       if ( doCropping )
         {
-        fimg = cropImage(functional[[ind]], plotimask )
+        fimg = cropImage(y[[ind]], plotimask )
         labimg <- as.array(  fimg )
-        } else labimg <- as.array( functional[[ind]] )
-    } else labimg <- as.array(functional[[ind]])  # the label image
+        } else labimg <- as.array( y[[ind]] )
+    } else labimg <- as.array(y[[ind]])  # the label image
+    labimg[ labimg < window.overlay[1] ] = 0
+    labimg[ labimg > window.overlay[2] ] = 0
     if (imagedim == 2) {
       labimg <- rotate270.matrix(labimg)
     }
@@ -480,9 +489,10 @@ if ( ! any( is.na( domainImageMap ) ) )
     }
     if (minind > 1)
       minind <- minind - 1
+    colorfun = rainbow
     heatvals <- heat.colors(nlevels, alpha = alpha)
     heatvals <- rainbow(nlevels, alpha = alpha)
-    if (color.overlay[ind] != "jet")
+    if ( color.overlay[ind] != "jet" & color.overlay[ind] != "viridis" & color.overlay[ind] != "magma" & color.overlay[ind] != "plasma" & color.overlay[ind] != "inferno"   )
       colorfun <- colorRampPalette(c("white", color.overlay[ind]), interpolate = c("spline"),
         space = "Lab")
     if (color.overlay[ind] == "jet") {
@@ -491,7 +501,15 @@ if ( ! any( is.na( domainImageMap ) ) )
         "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"), interpolate = c("spline"),
         space = "Lab")
     }
+    if (color.overlay[ind] == "viridis") {
+      colorfun <- colorRampPalette( viridis::viridis( nlevels ) , interpolate = c("spline"),
+        space = "Lab")
+    }
     heatvals <- colorfun(nlevels)
+    if ( color.overlay[ind] == "viridis" ) heatvals <- viridis::viridis( nlevels )
+    if ( color.overlay[ind] == "magma" ) heatvals <- viridis::magma( nlevels )
+    if ( color.overlay[ind] == "plasma" ) heatvals <- viridis::plasma( nlevels )
+    if ( color.overlay[ind] == "inferno" ) heatvals <- viridis::inferno( nlevels )
     # fix to get alpha transparency correct
     if (nchar(heatvals[1]) == 7 & alpha != 1) heatvals = paste0(heatvals,round(alpha*100,0))
     if (locthresh[1] > 1)
@@ -509,12 +527,12 @@ if ( ! any( is.na( domainImageMap ) ) )
     if (min(biglab) != max(biglab))
       {
       invisible( suppressWarnings(
-        plot(
+        pixmap::plot(
           pixmap::pixmapIndexed(biglab,
             col = heatvals, bbox = bbox), add = TRUE) ) )
       }
   } # for loop
-  } # if not all na functional
+  } # if not all na y
   # g<-biglab ; g[]<-0 ; b<-biglab ; b[]<-0 print('try rgb')
   # dd<-pixmapRGB(c(biglab,g,b),nrow=nrow(bigslice),ncol=ncol(bigslice),bbox=c(0,0,wincols,winrows))
   par( mar = startpar )  # set margins to zero ! less wasted space
