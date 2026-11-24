@@ -18,14 +18,26 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          # ubuntu-latest (26.04, GCC 15) fails building ITKR from source until
-          # ANTsX/ITKR picks up ITK 4f275769e3; ubuntu-24.04 (GCC 13) builds.
-          - {os: ubuntu-latest,   r: 'release'}
-          - {os: ubuntu-24.04,    r: 'release'}
-          - {os: macos-latest,    r: 'release'}
+          # antsx.r-universe.dev publishes ITKR/ANTsRCore binaries for
+          #   Linux: Ubuntu 26.04 (resolute) x86_64 + aarch64, R release + devel
+          #   macOS: arm64 + x86_64, R release + oldrel-1
+          # These configs cover each of them, so they install in seconds.
+          - {os: ubuntu-latest,     r: 'release'}
+          - {os: ubuntu-latest,     r: 'devel'}
+          - {os: ubuntu-26.04-arm,  r: 'release'}
+          - {os: ubuntu-26.04-arm,  r: 'devel'}
+          - {os: macos-latest,      r: 'release'}
+          - {os: macos-latest,      r: 'oldrel-1'}
+          # torch 2.13 has no macOS x86_64 wheel; torch tests skip here
+          - {os: macos-26-intel,    r: 'release',  python: false}
+          - {os: macos-26-intel,    r: 'oldrel-1', python: false}
+          # No r-universe binary: these build ITKR/ANTsRCore from source.
+          # ubuntu-24.04 (GCC 13) builds; ubuntu-latest (26.04, GCC 15) fails
+          # building ITKR from source until ANTsX/ITKR picks up ITK 4f275769e3.
+          - {os: ubuntu-24.04,      r: 'release'}
           # R >= 4.7 ships macOS binaries as .tar.xz, not .tgz
-          - {os: macos-latest,    r: 'devel'}
-          - {os: windows-latest,  r: 'release'}
+          - {os: macos-latest,      r: 'devel'}
+          - {os: windows-latest,    r: 'release'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -49,6 +61,25 @@ jobs:
           use-public-rspm: true
           extra-repositories: https://antsx.r-universe.dev
 
+      # On Linux, https://antsx.r-universe.dev serves only source packages;
+      # binaries live at /bin/linux/<codename>-<arch>/<R major.minor>/.
+      # Put that repo first so pak picks the binary. For a distro r-universe
+      # doesn't build for (e.g. noble), the URL serves source, so it's harmless.
+      - name: Add r-universe Linux binary repo
+        if: runner.os == 'Linux'
+        shell: Rscript {0}
+        run: |
+          os <- readLines("/etc/os-release")
+          codename <- sub("^VERSION_CODENAME=", "",
+            grep("^VERSION_CODENAME=", os, value = TRUE))
+          rver <- sub("^(\\d+\\.\\d+).*", "\\1", getRversion())
+          url <- sprintf("https://antsx.r-universe.dev/bin/linux/%s-%s/%s",
+            codename, R.version$arch, rver)
+          profile <- Sys.getenv("R_PROFILE_USER", "~/.Rprofile")
+          cat(sprintf('options(repos = c(antsx_bin = "%s", getOption("repos")))\n', url),
+            file = profile, append = TRUE)
+          message("Prepended ", url, " to repos in ", profile)
+
       # hdf5r needs libhdf5, and building ITKR from source (where r-universe
       # has no binary for this Ubuntu) needs cmake
       - name: Install system dependencies - LINUX
@@ -65,6 +96,7 @@ jobs:
           cache-dependency-path: .github/requirements-ci.txt
 
       - name: Install Python test dependencies
+        if: matrix.config.python != false
         run: python -m pip install --extra-index-url https://download.pytorch.org/whl/cpu -r .github/requirements-ci.txt
 
       - name: Select Python for reticulate
